@@ -1,0 +1,28 @@
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 29B
+#1 transferring dockerfile: 133B done
+#1 DONE 0.0s
+
+#2 [internal] load .dockerignore
+#2 transferring context: 2B done
+#2 DONE 0.0s
+
+#3 [internal] load metadata for docker.io/library/openjdk:17
+#3 DONE 1.4s
+
+#4 [1/2] FROM docker.io/library/openjdk:17@sha256:528707081fdb9562eb819128a9f85ae7fe000e2fbaeaf9f87662e7b3f38cb7d8
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 17.32MB 0.4s done
+#5 DONE 0.4s
+
+#6 [2/2] COPY app/build/libs/app-all.jar app-all.jar
+#6 CACHED
+
+#7 exporting to image
+#7 exporting layers done
+#7 writing image sha256:f239a4521ead5f104f34c7cf9d14f6837892d457a6b432e6e5d40a859d063c78 done
+#7 naming to docker.io/library/invalid_peer_reproduction_proxy-client done
+#7 DONE 0.0s
+Attaching to invalid_peer_reproduction-cassandra_1_1-1, invalid_peer_reproduction-cassandra_1_2-1, invalid_peer_reproduction-cassandra_1_3-1, invalid_peer_reproduction-cassandra_2_1-1, invalid_peer_reproduction-cassandra_2_2-1, invalid_peer_reproduction-cassandra_2_3-1, invalid_peer_reproduction-proxy-1, invalid_peer_reproduction-proxy-client-1
