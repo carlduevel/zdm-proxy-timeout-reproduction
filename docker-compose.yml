@@ -126,7 +126,7 @@ services:
       - "CASSANDRA_HOST=cassandra_2_3"
       - "MAX_HEAP_SIZE=1G"
       - "HEAP_NEWSIZE=250M"
-  proxy:
+  proxy_1: &proxy
     image: datastax/zdm-proxy:2.1.0
     healthcheck:
       test: ["CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042"]
@@ -162,6 +162,10 @@ services:
       - ZDM_ORIGIN_USERNAME=cassandra
       - ZDM_ORIGIN_PASSWORD=cassandra
       - ZDM_PROXY_LISTEN_PORT=9042
+  proxy_2:
+    <<: *proxy
+  proxy_3:
+    <<: *proxy
   cassandra_client:
     build: client
     image: client
@@ -178,12 +182,16 @@ services:
   proxy_client:
     build: client
     image: client
-    command:  proxy
+    command:  proxy_1 proxy_2 proxy_3
     networks:
       - cassandra_1
       - cassandra_2
     depends_on:
-      proxy:
+      proxy_1:
+        condition: service_healthy
+      proxy_2:
+        condition: service_healthy
+      proxy_3:
         condition: service_healthy
 networks:
   cassandra_1:
