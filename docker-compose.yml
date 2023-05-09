@@ -127,7 +127,7 @@ services:
       - "MAX_HEAP_SIZE=1G"
       - "HEAP_NEWSIZE=250M"
   proxy_1:
-    image: datastax/zdm-proxy:2.1.0
+    image: datastax/zdm-proxy:ignore_target_errors
     healthcheck:
       test: ["CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042"]
       interval: 15s
@@ -167,7 +167,7 @@ services:
       - ZDM_PROXY_TOPOLOGY_ADDRESSES=172.16.238.10,172.16.238.11,172.16.238.12
       - ZDM_PROXY_TOPOLOGY_INDEX=0
   proxy_2:
-    image: datastax/zdm-proxy:2.1.0
+    image: datastax/zdm-proxy:ignore_target_errors
     healthcheck:
       test: [ "CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042" ]
       interval: 15s
@@ -207,7 +207,7 @@ services:
       - ZDM_PROXY_TOPOLOGY_ADDRESSES=172.16.238.10,172.16.238.11,172.16.238.12
       - ZDM_PROXY_TOPOLOGY_INDEX=1
   proxy_3:
-    image: datastax/zdm-proxy:2.1.0
+    image: datastax/zdm-proxy:ignore_target_errors
     healthcheck:
       test: [ "CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042" ]
       interval: 15s
