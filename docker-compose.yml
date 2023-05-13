@@ -86,13 +86,14 @@ services:
     image: "shopify/toxiproxy"
     networks:
       - cassandra_2
+      - toxyproxies
     depends_on:
       - cassandra_2_1
   # We created proxy configuration from another ephermal container
   toxiproxy-config_2_1:
     image: "shopify/toxiproxy"
     networks:
-      - cassandra_2
+      - toxyproxies
     depends_on:
       toxiproxy_2_1:
         condition: service_started
@@ -125,13 +126,14 @@ services:
     image: "shopify/toxiproxy"
     networks:
       - cassandra_2
+      - toxyproxies
     depends_on:
       - cassandra_2_2
   # We created proxy configuration from another ephermal container
   toxiproxy-config_2_2:
     image: "shopify/toxiproxy"
     networks:
-      - cassandra_2
+      - toxyproxies
     depends_on:
       toxiproxy_2_2:
         condition: service_started
@@ -164,6 +166,7 @@ services:
     image: "shopify/toxiproxy"
     networks:
       - cassandra_2
+      - toxyproxies
     depends_on:
       - cassandra_2_3
     healthcheck:
@@ -172,7 +175,7 @@ services:
   toxiproxy-config_2_3:
     image: "shopify/toxiproxy"
     networks:
-      - cassandra_2
+      - toxyproxies
     depends_on:
       toxiproxy_2_3:
         condition: service_started
@@ -188,7 +191,7 @@ services:
       retries: 10
     networks:
       cassandra_1:
-      cassandra_2:
+      toxyproxies:
       proxies:
         ipv4_address: 172.16.238.10
     depends_on:
@@ -234,7 +237,7 @@ services:
       retries: 10
     networks:
       cassandra_1:
-      cassandra_2:
+      toxyproxies:
       proxies:
         ipv4_address: 172.16.238.11
     depends_on:
@@ -280,7 +283,7 @@ services:
       retries: 10
     networks:
       cassandra_1:
-      cassandra_2:
+      toxyproxies:
       proxies:
         ipv4_address: 172.16.238.12
     depends_on:
@@ -317,19 +320,19 @@ services:
       - ZDM_PROXY_LISTEN_PORT=9042
       - ZDM_PROXY_TOPOLOGY_ADDRESSES=172.16.238.10,172.16.238.11,172.16.238.12
       - ZDM_PROXY_TOPOLOGY_INDEX=2
-  cassandra_client:
-    build: client
-    image: client
-    networks:
-      - cassandra_1
-    command:  cassandra_1_1 cassandra_1_2 cassandra_1_3
-    depends_on:
-      cassandra_1_1:
-        condition: service_healthy
-      cassandra_1_2:
-        condition: service_healthy
-      cassandra_1_3:
-        condition: service_healthy
+#  cassandra_client:
+#    build: client
+#    image: client
+#    networks:
+#      - cassandra_2
+#    command: toxiproxy_2_1 toxiproxy_2_2 toxiproxy_2_3
+#    depends_on:
+#      cassandra_1_1:
+#        condition: service_healthy
+#      cassandra_1_2:
+#        condition: service_healthy
+#      cassandra_1_3:
+#        condition: service_healthy
   proxy_client:
     build: client
     image: client
@@ -346,6 +349,7 @@ services:
 networks:
   cassandra_1:
   cassandra_2:
+  toxyproxies:
   proxies:
     ipam:
       driver: default
