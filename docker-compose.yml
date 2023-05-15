@@ -1,5 +1,21 @@
 version: "3.9"
 services:
+  tc:
+    image: "lukaszlach/docker-tc"
+    container_name: docker-tc
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/docker-tc:/var/docker-tc
+    deploy:
+      mode: global
+      restart_policy:
+        condition: any
+    environment:
+      HTTP_BIND: "127.0.0.1"
+      HTTP_PORT: "4080"
+    network_mode: host
   cassandra_1_1:
     image: cassandra:3.11.2
     networks:
@@ -65,6 +81,8 @@ services:
       - "HEAP_NEWSIZE=250M"
   cassandra_2_1:
     image: cassandra:3.11.2
+    labels:
+      - "com.docker-tc.enabled=1"
     networks:
       - cassandra_2
     healthcheck:
@@ -82,25 +100,10 @@ services:
       - "CASSANDRA_HOST=cassandra_2_1"
       - "MAX_HEAP_SIZE=1G"
       - "HEAP_NEWSIZE=250M"
-  toxiproxy_2_1:
-    image: "shopify/toxiproxy"
-    networks:
-      - cassandra_2
-    depends_on:
-      - cassandra_2_1
-  # We created proxy configuration from another ephermal container
-  toxiproxy-config_2_1:
-    image: "shopify/toxiproxy"
-    networks:
-      - cassandra_2
-    depends_on:
-      toxiproxy_2_1:
-        condition: service_started
-    entrypoint: >
-      sh -c "/go/bin/toxiproxy-cli -h   toxiproxy_2_1:8474 create cassandra --listen 0.0.0.0:9042 --upstream cassandra_2_1:9042;
-      /go/bin/toxiproxy-cli -h toxiproxy_2_1:8474 toxic add -t latency -a latency=3000 cassandra"
   cassandra_2_2:
     image: cassandra:3.11.2
+    labels:
+      - "com.docker-tc.enabled=1"
     networks:
       - cassandra_2
     depends_on:
@@ -121,25 +124,10 @@ services:
       - "CASSANDRA_HOST=cassandra_2_2"
       - "MAX_HEAP_SIZE=1G"
       - "HEAP_NEWSIZE=250M"
-  toxiproxy_2_2:
-    image: "shopify/toxiproxy"
-    networks:
-      - cassandra_2
-    depends_on:
-      - cassandra_2_2
-  # We created proxy configuration from another ephermal container
-  toxiproxy-config_2_2:
-    image: "shopify/toxiproxy"
-    networks:
-      - cassandra_2
-    depends_on:
-      toxiproxy_2_2:
-        condition: service_started
-    entrypoint: >
-      sh -c "/go/bin/toxiproxy-cli -h   toxiproxy_2_2:8474 create cassandra --listen 0.0.0.0:9042 --upstream cassandra_2_2:9042;
-      /go/bin/toxiproxy-cli -h toxiproxy_2_2:8474 toxic add -t latency -a latency=3000 cassandra"
   cassandra_2_3:
     image: cassandra:3.11.2
+    labels:
+      - "com.docker-tc.enabled=1"
     networks:
       - cassandra_2
     depends_on:
@@ -160,27 +148,10 @@ services:
       - "CASSANDRA_HOST=cassandra_2_3"
       - "MAX_HEAP_SIZE=1G"
       - "HEAP_NEWSIZE=250M"
-  toxiproxy_2_3:
-    image: "shopify/toxiproxy"
-    networks:
-      - cassandra_2
-    depends_on:
-      - cassandra_2_3
-    healthcheck:
-      test: [ "CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042" ]
-  # We created proxy configuration from another ephermal container
-  toxiproxy-config_2_3:
-    image: "shopify/toxiproxy"
-    networks:
-      - cassandra_2
-    depends_on:
-      toxiproxy_2_3:
-        condition: service_started
-    entrypoint: >
-      sh -c "/go/bin/toxiproxy-cli -h   toxiproxy_2_3:8474 create cassandra --listen 0.0.0.0:9042 --upstream cassandra_2_3:9042;
-      /go/bin/toxiproxy-cli -h toxiproxy_2_3:8474 toxic add -t latency -a latency=3000 cassandra"
   proxy_1:
     image: datastax/zdm-proxy:2.1.0
+    labels:
+      - "com.docker-tc.enabled=1"
     healthcheck:
       test: ["CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042"]
       interval: 15s
@@ -204,17 +175,11 @@ services:
           condition: service_healthy
         cassandra_2_3:
           condition: service_healthy
-        toxiproxy-config_2_1:
-          condition: service_completed_successfully
-        toxiproxy-config_2_2:
-          condition: service_completed_successfully
-        toxiproxy-config_2_3:
-          condition: service_completed_successfully
     environment:
       - ZDM_PRIMARY_CLUSTER=ORIGIN
       - ZDM_READ_MODE=PRIMARY_ONLY
       - ZDM_ORIGIN_CONTACT_POINTS=cassandra_1_1,cassandra_1_2,cassandra_1_3
-      - ZDM_TARGET_CONTACT_POINTS=toxiproxy_2_1,toxiproxy_2_2,toxiproxy_2_3
+      - ZDM_TARGET_CONTACT_POINTS=cassandra_2_1,cassandra_2_2,cassandra_2_3
       - ZDM_ORIGIN_PORT=9042
       - ZDM_TARGET_PORT=9042
       - ZDM_LOG_LEVEL=INFO
@@ -227,6 +192,8 @@ services:
       - ZDM_PROXY_TOPOLOGY_INDEX=0
   proxy_2:
     image: datastax/zdm-proxy:2.1.0
+    labels:
+      - "com.docker-tc.enabled=1"
     healthcheck:
       test: [ "CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042" ]
       interval: 15s
@@ -250,17 +217,11 @@ services:
         condition: service_healthy
       cassandra_2_3:
         condition: service_healthy
-      toxiproxy-config_2_1:
-        condition: service_completed_successfully
-      toxiproxy-config_2_2:
-        condition: service_completed_successfully
-      toxiproxy-config_2_3:
-        condition: service_completed_successfully
     environment:
       - ZDM_PRIMARY_CLUSTER=ORIGIN
       - ZDM_READ_MODE=PRIMARY_ONLY
       - ZDM_ORIGIN_CONTACT_POINTS=cassandra_1_1,cassandra_1_2,cassandra_1_3
-      - ZDM_TARGET_CONTACT_POINTS=toxiproxy_2_1,toxiproxy_2_2,toxiproxy_2_3
+      - ZDM_TARGET_CONTACT_POINTS=cassandra_2_1,cassandra_2_2,cassandra_2_3
       - ZDM_ORIGIN_PORT=9042
       - ZDM_TARGET_PORT=9042
       - ZDM_LOG_LEVEL=INFO
@@ -273,6 +234,8 @@ services:
       - ZDM_PROXY_TOPOLOGY_INDEX=1
   proxy_3:
     image: datastax/zdm-proxy:2.1.0
+    labels:
+      - "com.docker-tc.enabled=1"
     healthcheck:
       test: [ "CMD-SHELL", "/usr/bin/nc -vz -w 1 127.0.0.1 9042" ]
       interval: 15s
@@ -296,17 +259,11 @@ services:
         condition: service_healthy
       cassandra_2_3:
         condition: service_healthy
-      toxiproxy-config_2_1:
-        condition: service_completed_successfully
-      toxiproxy-config_2_2:
-        condition: service_completed_successfully
-      toxiproxy-config_2_3:
-        condition: service_completed_successfully
     environment:
       - ZDM_PRIMARY_CLUSTER=ORIGIN
       - ZDM_READ_MODE=PRIMARY_ONLY
       - ZDM_ORIGIN_CONTACT_POINTS=cassandra_1_1,cassandra_1_2,cassandra_1_3
-      - ZDM_TARGET_CONTACT_POINTS=toxiproxy_2_1,toxiproxy_2_2,toxiproxy_2_3
+      - ZDM_TARGET_CONTACT_POINTS=cassandra_2_1,cassandra_2_2,cassandra_2_3
       - ZDM_ORIGIN_PORT=9042
       - ZDM_TARGET_PORT=9042
       - ZDM_LOG_LEVEL=INFO
@@ -322,7 +279,7 @@ services:
     image: client
     networks:
       - cassandra_1
-    command:  cassandra_1_1 cassandra_1_2 cassandra_1_3
+    command:  direct cassandra_1_1 cassandra_1_2 cassandra_1_3
     depends_on:
       cassandra_1_1:
         condition: service_healthy
@@ -333,7 +290,7 @@ services:
   proxy_client:
     build: client
     image: client
-    command:  proxy_1 proxy_2 proxy_3
+    command:  proxy proxy_1 proxy_2 proxy_3
     networks:
       - proxies
     depends_on:
